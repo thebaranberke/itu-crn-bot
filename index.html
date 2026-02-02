@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>İTÜ CRN Bot</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap');
+
+  :root {
+    --bg:#0a0a0f; --card:#11111a; --card-border:rgba(255,255,255,0.06);
+    --accent:#a5b4fc; --accent2:#6ee7b7;
+    --text:#e2e2e8; --text-dim:#555; --text-mid:#888;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body {
+    min-height:100vh; background:var(--bg); color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:44px 16px 70px; overflow-x:hidden;
+  }
+  body::before {
+    content:'';position:fixed;top:-220px;left:50%;transform:translateX(-50%);
+    width:720px;height:720px;
+    background:radial-gradient(circle,rgba(99,102,241,0.16) 0%,transparent 70%);
+    pointer-events:none;z-index:0;
+  }
+  body::after {
+    content:'';position:fixed;bottom:-180px;right:-120px;
+    width:520px;height:520px;
+    background:radial-gradient(circle,rgba(16,185,129,0.1) 0%,transparent 70%);
+    pointer-events:none;z-index:0;
+  }
+
+  .container{position:relative;z-index:1;width:100%;max-width:680px;}
+
+  /* Header */
+  .header{text-align:center;margin-bottom:32px;}
+  .header h1 {
+    font-family:'Syne',sans-serif;font-size:1.85rem;font-weight:800;
+    letter-spacing:-0.02em;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .header p{font-size:0.74rem;color:var(--text-dim);margin-top:6px;letter-spacing:0.07em;text-transform:uppercase;}
+
+  /* Section Label */
+  .sec-label{font-size:0.67rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:10px;padding-left:3px;}
+
+  /* ─── EDITOR CARD ─── */
+  .editor-card {
+    background:var(--card);border:1px solid var(--card-border);
+    border-radius:16px;padding:20px 20px 18px;margin-bottom:20px;
+    box-shadow:0 6px 30px rgba(0,0,0,0.38);
+  }
+  .crn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .crn-wrap{position:relative;}
+  .crn-wrap .idx {
+    position:absolute;left:10px;top:50%;transform:translateY(-50%);
+    font-size:0.66rem;color:#3d3d50;font-weight:600;pointer-events:none;
+  }
+  .crn-wrap input {
+    width:100%;background:rgba(99,102,241,0.07);
+    border:1px solid rgba(99,102,241,0.2);border-radius:10px;
+    padding:9px 10px 9px 25px;color:var(--accent);
+    font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:500;
+    outline:none;transition:border-color .2s,box-shadow .2s;
+  }
+  .crn-wrap input:focus{border-color:rgba(99,102,241,0.5);box-shadow:0 0 0 3px rgba(99,102,241,0.13);}
+  .crn-wrap input::placeholder{color:#3a3a4a;}
+
+  /* Add / Remove */
+  .ed-actions{display:flex;gap:8px;margin-top:14px;justify-content:center;}
+  .ed-btn {
+    background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+    color:var(--text-mid);font-family:'JetBrains Mono',monospace;
+    font-size:0.76rem;padding:5px 16px;border-radius:8px;
+    cursor:pointer;transition:all .2s;
+  }
+  .ed-btn:hover{background:rgba(255,255,255,0.1);color:#ccc;}
+  .ed-btn.add:hover{border-color:rgba(110,231,183,.4);color:var(--accent2);background:rgba(110,231,183,.07);}
+  .ed-btn.rem:hover{border-color:rgba(255,100,100,.4);color:#fb7185;background:rgba(255,100,100,.07);}
+
+  /* ─── CODE CARD ─── */
+  .code-card {
+    background:var(--card);border:1px solid var(--card-border);
+    border-radius:16px;overflow:hidden;margin-bottom:20px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.4);
+  }
+  .tab-bar{display:flex;align-items:center;padding:13px 18px;background:#0e0e15;border-bottom:1px solid rgba(255,255,255,0.05);gap:7px;}
+  .dot{width:12px;height:12px;border-radius:50%;}
+  .dot-r{background:#ff5f57;}.dot-y{background:#febc2e;}.dot-g{background:#28c840;}
+  .tab-bar .fname{margin-left:12px;font-size:0.74rem;color:#666;font-weight:500;}
+
+  .copy-btn {
+    margin-left:auto;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+    color:var(--text-mid);font-family:'JetBrains Mono',monospace;font-size:0.7rem;
+    padding:4px 15px;border-radius:6px;cursor:pointer;transition:all .2s;
+  }
+  .copy-btn:hover{background:rgba(255,255,255,0.12);color:#ccc;}
+  .copy-btn.ok{color:var(--accent2);border-color:rgba(110,231,183,.3);background:rgba(110,231,183,.08);}
+
+  .code-body{padding:18px 20px;overflow-x:auto;}
+  .cl{display:flex;align-items:baseline;line-height:1.85;font-size:0.79rem;white-space:nowrap;}
+  .ln{color:#2e2e3a;user-select:none;min-width:24px;text-align:right;margin-right:16px;font-size:0.72rem;}
+
+  /* syntax colours */
+  .k{color:#c084fc;}.v{color:#a5b4fc;}.s{color:#6ee7b7;}.f{color:#60a5fa;}
+  .c{color:#4b5563;font-style:italic;}.p{color:#e2e2e8;}.n{color:#fb923c;}.o{color:#9ca3af;}
+
+  /* ─── HOW-TO ROW ─── */
+  .howto-row{display:flex;gap:14px;}
+  .howto-card {
+    flex:1;background:var(--card);border:1px solid var(--card-border);
+    border-radius:16px;padding:20px 18px;position:relative;overflow:hidden;
+  }
+  .howto-card::before{content:'';position:absolute;top:-28px;right:-28px;width:96px;height:96px;border-radius:50%;opacity:.07;}
+  .howto-card.bm::before{background:var(--accent);}
+  .howto-card.cn::before{background:var(--accent2);}
+
+  .hb {
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:0.66rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+    padding:4px 10px;border-radius:20px;margin-bottom:14px;
+  }
+  .hb.bm{background:rgba(99,102,241,.1);color:var(--accent);border:1px solid rgba(99,102,241,.2);}
+  .hb.cn{background:rgba(110,231,183,.1);color:var(--accent2);border:1px solid rgba(110,231,183,.2);}
+
+  .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;}
+  .step:last-child{margin-bottom:0;}
+  .sn {
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    color:var(--text-mid);width:22px;height:22px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.69rem;font-weight:600;flex-shrink:0;
+  }
+  .st{font-size:0.75rem;color:var(--text-mid);line-height:1.6;padding-top:2px;}
+  .st strong{color:#ccc;font-weight:500;}
+  .st code{background:rgba(255,255,255,.06);padding:1px 7px;border-radius:4px;font-size:0.73rem;color:var(--accent2);}
+
+  /* Footer */
+  .footer {
+    text-align:center;margin-top:32px;
+  }
+  .footer span {
+    font-size:0.7rem;color:#3d3d50;letter-spacing:0.08em;
+    text-transform:uppercase;font-weight:500;
+  }
+  .footer span strong{color:#555;font-weight:600;}
+
+  @media(max-width:560px){
+    .crn-grid{grid-template-columns:repeat(2,1fr);}
+    .howto-row{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>İTÜ CRN Bot</h1>
+    <p>Bookmarklet Oluşturucusu</p>
+  </div>
+
+  <!-- CRN Editor -->
+  <div class="sec-label">CRN Düzenle</div>
+  <div class="editor-card">
+    <div class="crn-grid" id="crnGrid"></div>
+    <div class="ed-actions">
+      <button class="ed-btn add" onclick="addCRN()">+ CRN Ekle</button>
+      <button class="ed-btn rem" onclick="removeCRN()">− Son Sil</button>
+    </div>
+  </div>
+
+  <!-- Code Preview -->
+  <div class="sec-label">Oluşturulan Kod</div>
+  <div class="code-card">
+    <div class="tab-bar">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span class="fname">bookmarklet.js</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyCode()">Copy</button>
+    </div>
+    <div class="code-body" id="codeBody"></div>
+  </div>
+
+  <!-- How To -->
+  <div class="sec-label">Nasıl Kullanılır</div>
+  <div class="howto-row">
+    <div class="howto-card bm">
+      <div class="hb bm">🔖 Yöntem 1 — Bookmarklet</div>
+      <div class="step"><div class="sn">1</div><div class="st"><strong>Copy</strong> butonuna bas</div></div>
+      <div class="step"><div class="sn">2</div><div class="st">Yer imleri çubuğunu göster<br><code>Ctrl + Shift + B</code></div></div>
+      <div class="step"><div class="sn">3</div><div class="st">Çubuğa sağ tık →<br><strong>Yeni yer imi ekle</strong></div></div>
+      <div class="step"><div class="sn">4</div><div class="st">URL alanına yapıştır<br>(<code>javascript:</code> dahil olacak)</div></div>
+      <div class="step"><div class="sn">5</div><div class="st">İTÜ kayıt sayfasında<br>yer imi butonuna <strong>tek tık</strong></div></div>
+    </div>
+    <div class="howto-card cn">
+      <div class="hb cn">⟨/⟩ Yöntem 2 — Konsol</div>
+      <div class="step"><div class="sn">1</div><div class="st">İTÜ ders kayıt sayfasına git</div></div>
+      <div class="step"><div class="sn">2</div><div class="st">Geliştirici araçları aç<br><code>F12</code></div></div>
+      <div class="step"><div class="sn">3</div><div class="st"><strong>Console</strong> sekmesine geç</div></div>
+      <div class="step"><div class="sn">4</div><div class="st">Kodu yapıştır<br>(<code>javascript:</code> <strong>olmadan</strong>)</div></div>
+      <div class="step"><div class="sn">5</div><div class="st"><strong>Enter</strong> tusa bas</div></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Created by <strong>Baran Berke</strong></span>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+/* ─── STATE ─── */
+let crns = ['21817','21658','20788','20272','20019','20639','20079','20902'];
+
+/* ─── RENDER INPUTS ─── */
+function renderInputs(){
+  const g = document.getElementById('crnGrid');
+  g.innerHTML='';
+  crns.forEach((val,i)=>{
+    const w = document.createElement('div');
+    w.className='crn-wrap';
+    w.innerHTML=`<span class="idx">${i+1}</span><input type="text" inputmode="numeric" maxlength="5" value="${val}" placeholder="CRN" oninput="onInput(${i},this.value)">`;
+    g.appendChild(w);
+  });
+}
+
+function onInput(i,v){
+  crns[i]=v.replace(/\D/g,'').slice(0,5);
+  renderCode();
+}
+
+function addCRN(){
+  if(crns.length>=10)return;
+  crns.push('');
+  renderInputs();
+  renderCode();
+  const ins=document.querySelectorAll('.crn-wrap input');
+  ins[ins.length-1].focus();
+}
+
+function removeCRN(){
+  if(crns.length<=1)return;
+  crns.pop();
+  renderInputs();
+  renderCode();
+}
+
+/* ─── FULL RAW CODE (for copy) ─── */
+function getRawCode(prefix){
+  const list=crns.map(c=>`'${c}'`).join(',');
+  const p=prefix?'javascript:':'';
+  return `${p}!function(){var e=[${list}];let t=document.querySelectorAll("input[type='number']"),n=0;t.forEach(t=>{(function e(t){let n=window.getComputedStyle(t);if("none"===n.display||"hidden"===n.visibility)return!1;let l=t.parentElement;for(;l;){let i=window.getComputedStyle(l);if("none"===i.display||"hidden"===i.visibility)return!1;l=l.parentElement}return!0})(t)&&n<e.length&&(t.value=e[n],t.dispatchEvent(new Event("input",{bubbles:!0})),n++)}),setTimeout(function(){let e=document.querySelector('button[type="submit"]:not([disabled])');e&&e.click(),setTimeout(function(){let e=document.querySelector(".card-footer.d-flex.justify-content-end");if(e){let t=e.getElementsByTagName("button");t.length>1&&t[1].click()}},1)},1)}();`;
+}
+
+/* ─── HIGHLIGHTED CODE RENDER ─── */
+function renderCode(){
+  const crnSpans = crns.map(c=>`<span class="s">'${c||''}'</span>`).join('<span class="p">, </span>');
+
+  const lines=[
+    `<span class="k">javascript:</span><span class="p">!</span><span class="k">function</span><span class="p">(){</span>`,
+    `&nbsp;&nbsp;<span class="k">var</span> <span class="v">e</span> <span class="o">=</span> <span class="p">[</span>${crnSpans}<span class="p">];</span>`,
+    `&nbsp;&nbsp;<span class="k">let</span> <span class="v">t</span> <span class="o">=</span> <span class="f">document.querySelectorAll</span><span class="p">(</span><span class="s">"input[type='number']"</span><span class="p">),</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="v">n</span> <span class="o">=</span> <span class="n">0</span><span class="p">;</span>`,
+    ``,
+    `&nbsp;&nbsp;<span class="v">t</span><span class="p">.</span><span class="f">forEach</span><span class="p">(</span><span class="k">function</span><span class="p">(</span><span class="v">input</span><span class="p">){</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">// Elemanın görünür olup olmadığını kontrol et</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span><span class="p">(</span> <span class="f">isVisible</span><span class="p">(</span><span class="v">input</span><span class="p">)</span> <span class="o">&&</span> <span class="v">n</span> <span class="o">&lt;</span> <span class="v">e</span><span class="p">.</span><span class="v">length</span> <span class="p">){</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="v">input</span><span class="p">.</span><span class="v">value</span> <span class="o">=</span> <span class="v">e</span><span class="p">[</span><span class="v">n</span><span class="p">];</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="v">input</span><span class="p">.</span><span class="f">dispatchEvent</span><span class="p">(</span><span class="k">new</span> <span class="f">Event</span><span class="p">(</span><span class="s">"input"</span><span class="p">, {</span><span class="v">bubbles</span><span class="o">:</span><span class="k">true</span><span class="p">}));</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="v">n</span><span class="o">++</span><span class="p">;</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="p">}</span>`,
+    `&nbsp;&nbsp;<span class="p">});</span>`,
+    ``,
+    `&nbsp;&nbsp;<span class="c">// 1ms sonra formu otomatik gönder</span>`,
+    `&nbsp;&nbsp;<span class="f">setTimeout</span><span class="p">(</span><span class="k">function</span><span class="p">(){</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">let</span> <span class="v">btn</span> <span class="o">=</span> <span class="f">document.querySelector</span><span class="p">(</span><span class="s">'button[type="submit"]:not([disabled])'</span><span class="p">);</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="v">btn</span> <span class="o">&&</span> <span class="v">btn</span><span class="p">.</span><span class="f">click</span><span class="p">();</span>`,
+    ``,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">// Onay popup'ını kabul et</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">setTimeout</span><span class="p">(</span><span class="k">function</span><span class="p">(){</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">let</span> <span class="v">footer</span> <span class="o">=</span> <span class="f">document.querySelector</span><span class="p">(</span><span class="s">".card-footer.d-flex.justify-content-end"</span><span class="p">);</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">if</span><span class="p">(</span><span class="v">footer</span><span class="p">){</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">let</span> <span class="v">btns</span> <span class="o">=</span> <span class="v">footer</span><span class="p">.</span><span class="f">getElementsByTagName</span><span class="p">(</span><span class="s">"button"</span><span class="p">);</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="v">btns</span><span class="p">.</span><span class="v">length</span> <span class="o">&gt;</span> <span class="n">1</span> <span class="o">&&</span> <span class="v">btns</span><span class="p">[</span><span class="n">1</span><span class="p">].</span><span class="f">click</span><span class="p">();</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="p">}</span>`,
+    `&nbsp;&nbsp;&nbsp;&nbsp;<span class="p">},</span> <span class="n">1</span><span class="p">);</span>`,
+    `&nbsp;&nbsp;<span class="p">},</span> <span class="n">1</span><span class="p">);</span>`,
+    `<span class="p">}();</span>`,
+  ];
+
+  document.getElementById('codeBody').innerHTML = lines.map((l,i)=>
+    `<div class="cl"><span class="ln">${i+1}</span><span class="p">${l}</span></div>`
+  ).join('');
+}
+
+/* ─── COPY ─── */
+function copyCode(){
+  navigator.clipboard.writeText(getRawCode(true)).then(()=>{
+    const b=document.getElementById('copyBtn');
+    b.textContent='Copied ✓'; b.classList.add('ok');
+    setTimeout(()=>{b.textContent='Copy';b.classList.remove('ok');},1800);
+  });
+}
+
+/* ─── INIT ─── */
+renderInputs();
+renderCode();
+</script>
+</body>
+</html>
